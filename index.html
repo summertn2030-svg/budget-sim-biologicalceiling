@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>The Biological Ceiling | Funding Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0A0F1A;
+            font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif;
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Main dashboard - clinical dark theme */
+        .dashboard {
+            max-width: 1200px;
+            width: 100%;
+            background: #0F131F;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+            overflow: hidden;
+        }
+
+        /* Header - Medical Blue */
+        .header {
+            padding: 20px 24px 12px 24px;
+            border-bottom: 2px solid #0A3B4C;
+            background: #0B111E;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #7AC7FF;
+            letter-spacing: -0.3px;
+        }
+
+        .budget-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .total-budget {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: #5EE7FF;
+            background: #05161E;
+            padding: 4px 16px;
+            border-radius: 40px;
+            border: 1px solid #1B6B85;
+        }
+
+        .fixed-note {
+            color: #FF7B89;
+            font-size: 0.75rem;
+            background: #2D151B;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* 2-col flexible */
+        .main-grid {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 24px;
+        }
+
+        .sliders-panel {
+            flex: 1.2;
+            min-width: 240px;
+        }
+
+        .viz-panel {
+            flex: 0.9;
+            min-width: 250px;
+        }
+
+        /* card style */
+        .fund-card {
+            background: #0C1120;
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #1E2A3A;
+        }
+
+        .card-elt { border-left: 5px solid #2B7A9C; }
+        .card-bio { border-left: 5px solid #48B5B0; }
+        .card-exist { border-left: 5px solid #C44569; }
+
+        .sector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .sector-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #D6E6FF;
+        }
+
+        .sector-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #F0F4FF;
+            background: #05121C;
+            padding: 2px 12px;
+            border-radius: 24px;
+        }
+
+        /* Sliders - legacy compatible */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #20293B;
+            border-radius: 10px;
+            margin: 12px 0 6px 0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #5CC8FF;
+            border-radius: 50%;
+            border: 2px solid #FFFFFF;
+            cursor: pointer;
+            box-shadow: 0 0 5px #00A3FF;
+        }
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #7E95AF;
+            font-family: monospace;
+        }
+
+        /* Pie chart canvas */
+        .chart-box {
+            background: #0B0F1A;
+            border-radius: 28px;
+            padding: 16px;
+            border: 1px solid #253649;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .chart-box h3 {
+            font-size: 0.9rem;
+            color: #A3C6E9;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        canvas {
+            margin: 0 auto;
+            display: block;
+            background: #070B12;
+            border-radius: 20px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 0.7rem;
+        }
+        .legend span {
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        /* Voice to Text - light weight */
+        .voice-card {
+            background: #0B1020;
+            border-radius: 24px;
+            padding: 16px;
+            border: 1px solid #2A4058;
+        }
+        .voice-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .mic-btn {
+            background: #1F2E42;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #EEF5FF;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .mic-btn.active {
+            background: #E34D5E;
+            box-shadow: 0 0 8px #E34D5E;
+        }
+        textarea {
+            width: 100%;
+            background: #03070F;
+            border: 1px solid #2B4B66;
+            border-radius: 20px;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            color: #E0F2FE;
+            resize: vertical;
+        }
+        .voice-status {
+            font-size: 0.65rem;
+            color: #6A8BB0;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        @media (max-width: 700px) {
+            .sector-value { font-size: 1.2rem; }
+            .total-budget { font-size: 1.3rem; }
+            .header h1 { font-size: 1.3rem; }
+            .main-grid { padding: 12px; }
+            .fund-card { padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <h1>⚕️ BIOLOGICAL CEILING · FUNDING TECH</h1>
+        <div class="budget-bar">
+            <div class="total-budget">$<span id="totalAmt">10,000,000</span></div>
+            <div class="fixed-note">🔴 FIXED: $10M BOARD DECISION</div>
+        </div>
+    </div>
+    <div class="main-grid">
+        <!-- LEFT: Sliders + Voice -->
+        <div class="sliders-panel">
+            <!-- ELT RESEARCH -->
+            <div class="fund-card card-elt">
+                <div class="sector-header">
+                    <span class="sector-name">🧬 ELT RESEARCH</span>
+                    <span class="sector-value" id="eltVal">$3,333,333</span>
+                </div>
+                <input type="range" id="eltSlider" min="0" max="10000000" step="1000" value="3333333">
+                <div class="slider-labels"><span>$0</span><span>▸</span><span>$10M</span></div>
+            </div>
+            <!-- 3D BIO-PRINTING -->
+            <div class="fund-card card-bio">
+                <div class="sector-header">
+                    <span class="sector-name">🧫 3D BIO-PRINTING</span>
+                    <span class="sector-value" id="bioVal">$3,333,333</span>
+                </div>
+                <input type="range" id="bioSlider" min="0" max="10000000" step="1000" value="3333333">
+                <div class="slider-labels"><span>$0</span><span>▸</span><span>$10M</span></div>
+            </div>
+            <!-- EXISTING TECH -->
+            <div class="fund-card card-exist">
+                <div class="sector-header">
+                    <span class="sector-name">🖥️ EXISTING TECH</span>
+                    <span class="sector-value" id="existVal">$3,333,334</span>
+                </div>
+                <input type="range" id="existSlider" min="0" max="10000000" step="1000" value="3333334">
+                <div class="slider-labels"><span>$0</span><span>▸</span><span>$10M</span></div>
+            </div>
+
+            <!-- VOICE JUSTIFICATION (Digital Advocacy) -->
+            <div class="voice-card">
+                <div class="voice-header">
+                    <h3 style="color:#CBE4FE; font-size:0.95rem;">🎙️ BOARD JUSTIFICATION</h3>
+                    <button id="micButton" class="mic-btn">🎤 SPEAK</button>
+                </div>
+                <textarea id="justification" rows="2" placeholder="Speak or type your reasoning for budget allocation..."></textarea>
+                <div class="voice-status" id="voiceMsg">⚡ Tap Speak, dictate, then text appears.</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Pie Chart + live viz -->
+        <div class="viz-panel">
+            <div class="chart-box">
+                <h3>📊 REAL-TIME ALLOCATION</h3>
+                <canvas id="pieCanvas" width="280" height="280" style="width:100%; max-width:280px; height:auto;"></canvas>
+                <div class="legend">
+                    <span style="background:#2B7A9C;">ELT</span>
+                    <span style="background:#48B5B0;">BIO</span>
+                    <span style="background:#C44569;">EXIST</span>
+                </div>
+            </div>
+            <div class="voice-card" style="margin-top:8px; background:#090D18;">
+                <div style="font-size:0.75rem; color:#7BA5CF;">🔁 SMART BUDGETING: moving any slider auto-adjusts others to keep total = $10,000,000</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ----- CONSTANTS -----
+        var TOTAL = 10000000;   // $10M fixed
+        
+        // DOM elements
+        var eltSlider = document.getElementById('eltSlider');
+        var bioSlider = document.getElementById('bioSlider');
+        var existSlider = document.getElementById('existSlider');
+        var eltSpan = document.getElementById('eltVal');
+        var bioSpan = document.getElementById('bioVal');
+        var existSpan = document.getElementById('existVal');
+        var totalSpan = document.getElementById('totalAmt');
+        var pieCanvas = document.getElementById('pieCanvas');
+        
+        // State values (integers)
+        var eltVal = 3333333;
+        var bioVal = 3333333;
+        var existVal = 3333334;  // total = 10,000,000
+        
+        // ----- Helper: format money with commas (no dependencies)
+        function formatMoney(v){
+            return '$' + v.toLocaleString('en-US');
+        }
+        
+        // ----- Draw Pie Chart (lightweight, no external libs)
+        function drawPie() {
+            var ctx = pieCanvas.getContext('2d');
+            var w = pieCanvas.width, h = pieCanvas.height;
+            if(w === 0 || h === 0) {
+                pieCanvas.width = 280;
+                pieCanvas.height = 280;
+            }
+            var width = pieCanvas.width;
+            var height = pieCanvas.height;
+            ctx.clearRect(0, 0, width, height);
+            
+            var total = eltVal + bioVal + existVal;
+            if(total === 0) return;
+            
+            var angles = [
+                (eltVal / total) * 2 * Math.PI,
+                (bioVal / total) * 2 * Math.PI,
+                (existVal / total) * 2 * Math.PI
+            ];
+            var colors = ['#2B7A9C', '#48B5B0', '#C44569'];
+            var start = 0;
+            var centerX = width/2;
+            var centerY = height/2;
+            var radius = Math.min(width, height) * 0.38;
+            
+            for(var i=0; i<angles.length; i++){
+                var end = start + angles[i];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                start = end;
+            }
+            // inner circle for clean clinical look
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.45, 0, 2*Math.PI);
+            ctx.fillStyle = '#0B0F1A';
+            ctx.fill();
+            ctx.strokeStyle = '#1C3F55';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        
+        // ----- Update UI (sliders, spans, pie, total)
+        function fullUIUpdate() {
+            // update sliders without triggering events recursively (flag)
+            eltSlider.value = eltVal;
+            bioSlider.value = bioVal;
+            existSlider.value = existVal;
+            // update text spans
+            eltSpan.innerText = formatMoney(eltVal);
+            bioSpan.innerText = formatMoney(bioVal);
+            existSpan.innerText = formatMoney(existVal);
+            totalSpan.innerText = TOTAL.toLocaleString();
+            drawPie();
+        }
+        
+        // ----- CORE: rebalance on slider movement (integer safe)
+        function rebalance(changed, newRaw) {
+            // clamp new value
+            var newVal = Math.min(TOTAL, Math.max(0, newRaw));
+            
+            if(changed === 'elt') {
+                var remain = TOTAL - newVal;
+                // preserve ratio between bio and exist (if both zero, 50/50)
+                var oldBio = bioVal;
+                var oldExist = existVal;
+                var sumOld = oldBio + oldExist;
+                if(sumOld === 0) {
+                    bioVal = Math.floor(remain / 2);
+                    existVal = remain - bioVal;
+                } else {
+                    var ratioBio = oldBio / sumOld;
+                    var ratioExist = oldExist / sumOld;
+                    bioVal = Math.round(remain * ratioBio);
+                    existVal = remain - bioVal;
+                    // rounding correction
+                    if(bioVal + existVal !== remain) {
+                        existVal = remain - bioVal;
+                    }
+                }
+                eltVal = newVal;
+            }
+            else if(changed === 'bio') {
+                var remain2 = TOTAL - newVal;
+                var oldElt = eltVal;
+                var oldExist2 = existVal;
+                var sumOld2 = oldElt + oldExist2;
+                if(sumOld2 === 0) {
+                    eltVal = Math.floor(remain2 / 2);
+                    existVal = remain2 - eltVal;
+                } else {
+                    var ratioElt = oldElt / sumOld2;
+                    var ratioExist2 = oldExist2 / sumOld2;
+                    eltVal = Math.round(remain2 * ratioElt);
+                    existVal = remain2 - eltVal;
+                    if(eltVal + existVal !== remain2) existVal = remain2 - eltVal;
+                }
+                bioVal = newVal;
+            }
+            else if(changed === 'exist') {
+                var remain3 = TOTAL - newVal;
+                var oldElt2 = eltVal;
+                var oldBio2 = bioVal;
+                var sumOld3 = oldElt2 + oldBio2;
+                if(sumOld3 === 0) {
+                    eltVal = Math.floor(remain3 / 2);
+                    bioVal = remain3 - eltVal;
+                } else {
+                    var ratioElt2 = oldElt2 / sumOld3;
+                    var ratioBio2 = oldBio2 / sumOld3;
+                    eltVal = Math.round(remain3 * ratioElt2);
+                    bioVal = remain3 - eltVal;
+                    if(eltVal + bioVal !== remain3) bioVal = remain3 - eltVal;
+                }
+                existVal = newVal;
+            }
+            
+            // final integer safety and non-negative
+            eltVal = Math.min(TOTAL, Math.max(0, Math.floor(eltVal)));
+            bioVal = Math.min(TOTAL, Math.max(0, Math.floor(bioVal)));
+            existVal = Math.min(TOTAL, Math.max(0, Math.floor(existVal)));
+            
+            var finalTotal = eltVal + bioVal + existVal;
+            if(finalTotal !== TOTAL) {
+                var diffAdj = TOTAL - finalTotal;
+                existVal += diffAdj;
+                if(existVal < 0) { existVal = 0; }
+                if(existVal > TOTAL) existVal = TOTAL;
+                // final guarantee
+                if(eltVal + bioVal + existVal !== TOTAL) {
+                    eltVal = TOTAL - bioVal - existVal;
+                    if(eltVal < 0) eltVal = 0;
+                }
+            }
+            fullUIUpdate();
+        }
+        
+        // ----- Event handlers (with minimal overhead)
+        function onEltSlide() {
+            var raw = parseInt(eltSlider.value, 10);
+            if(isNaN(raw)) raw = eltVal;
+            rebalance('elt', raw);
+        }
+        function onBioSlide() {
+            var raw = parseInt(bioSlider.value, 10);
+            if(isNaN(raw)) raw = bioVal;
+            rebalance('bio', raw);
+        }
+        function onExistSlide() {
+            var raw = parseInt(existSlider.value, 10);
+            if(isNaN(raw)) raw = existVal;
+            rebalance('exist', raw);
+        }
+        
+        // attach events (legacy compatible)
+        eltSlider.addEventListener('input', onEltSlide);
+        bioSlider.addEventListener('input', onBioSlide);
+        existSlider.addEventListener('input', onExistSlide);
+        
+        // ----- Voice to Text (Digital advocacy) using Web Speech API, gracefully fallback
+        var micBtn = document.getElementById('micButton');
+        var textarea = document.getElementById('justification');
+        var voiceStatusSpan = document.getElementById('voiceMsg');
+        var recognition = null;
+        var isListening = false;
+        
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                micBtn.classList.add('active');
+                micBtn.innerText = '🔴 LISTENING';
+                voiceStatusSpan.innerText = '🎙️ Speak now... your justification will appear below.';
+            };
+            recognition.onend = function() {
+                isListening = false;
+                micBtn.classList.remove('active');
+                micBtn.innerText = '🎤 SPEAK';
+                voiceStatusSpan.innerText = '✅ Voice captured. Edit text if needed.';
+                setTimeout(function(){
+                    if(voiceStatusSpan.innerText === '✅ Voice captured. Edit text if needed.') {
+                        voiceStatusSpan.innerText = '⚡ Ready · tap Speak to dictate';
+                    }
+                }, 2500);
+            };
+            recognition.onresult = function(event) {
+                var transcript = event.results[0][0].transcript;
+                var currentText = textarea.value;
+                if(currentText.length > 0) {
+                    textarea.value = currentText + ' ' + transcript;
+                } else {
+                    textarea.value = transcript;
+                }
+                voiceStatusSpan.innerText = '🎤 Justification recorded.';
+                setTimeout(function(){
+                    if(voiceStatusSpan.innerText === '🎤 Justification recorded.') {
+                        voiceStatusSpan.innerText = '⚡ Ready · tap Speak to dictate';
+                    }
+                }, 2000);
+            };
+            recognition.onerror = function(event) {
+                console.warn('Speech error:', event.error);
+                voiceStatusSpan.innerText = '⚠️ Mic error: ' + event.error + '. Try again.';
+                micBtn.classList.remove('active');
+                micBtn.innerText = '🎤 SPEAK';
+                isListening = false;
+            };
+        } else {
+            voiceStatusSpan.innerText = '⚠️ Voice not supported on this browser. Type manually.';
+            micBtn.disabled = true;
+            micBtn.style.opacity = '0.5';
+            micBtn.innerText = '🎤 NO SPEECH';
+        }
+        
+        function toggleSpeech() {
+            if(!recognition) return;
+            if(isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    voiceStatusSpan.innerText = '⚠️ Please allow microphone permission.';
+                }
+            }
+        }
+        
+        micBtn.addEventListener('click', toggleSpeech);
+        
+        // initialize canvas size once
+        function setCanvasSize() {
+            var container = document.querySelector('.chart-box');
+            var maxW = Math.min(280, (window.innerWidth - 100));
+            pieCanvas.width = maxW;
+            pieCanvas.height = maxW;
+            pieCanvas.style.width = maxW + 'px';
+            pieCanvas.style.height = maxW + 'px';
+            drawPie();
+        }
+        
+        window.addEventListener('resize', function() {
+            setCanvasSize();
+            drawPie();
+        });
+        
+        // initial setup and data consistency (to prevent any rounding glitch)
+        function init() {
+            setCanvasSize();
+            fullUIUpdate();
+            // ensure total exactly 10M on load
+            var initSum = eltVal + bioVal + existVal;
+            if(initSum !== TOTAL) {
+                existVal = TOTAL - eltVal - bioVal;
+                if(existVal < 0) existVal = 0;
+                fullUIUpdate();
+            }
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
